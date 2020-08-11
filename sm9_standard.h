@@ -1,20 +1,12 @@
-#ifndef HEADER_SM9_STANDARD_H
 #define HEADER_SM9_STANDARD_H
-
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
-
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 #include "miracl.h"
 #include "r-ate.h"
 #include "kdf_standard.h"
-
 
 #define BNLEN 32 //BN curve with 256bit is used in SM9 algorithm
 #define SM9_ASK_MEMORY_ERR 0x00000001 //ask for memory fail(申请内存失败)
@@ -25,12 +17,8 @@ extern "C"{
 #define SM9_G2BASEPOINT_SET_ERR 0x00000006 //base point of G2 seted error(G2基点设置错误)
 #define SM9_GEPUB_ERR 0x00000007 //pubkey error(生成公钥错误)
 #define SM9_GEPRI_ERR 0x00000008 //privare key error(生成私钥错误)
-#define SM9_ERR_CMP_S1SB 0x00000009 //S1!=SB
-#define SM9_ERR_CMP_S2SA 0x0000000A //S2!=SA
-#define SM9_ERR_RA 0x0000000B //RA error
-#define SM9_ERR_RB 0x0000000C //RB error
-#define SM9_ERR_SA 0x0000000D //SA error
-#define SM9_ERR_SB 0x0000000E //SB error
+
+
 #define SM9_C1_NOT_VALID_G1 0x0000000F //C1不属于群G1
 #define SM9_ENCRYPT_ERR 0x00000010 //加密错误
 #define SM9_ERR_K1_ZERO 0x00000011 //K1 equals 0(K1全0)
@@ -73,34 +61,12 @@ ecn2 P2;
 big N; //order of group, N(t)
 big para_a, para_b, para_t, para_q;
 
-
+static int SM9_standard_init();
 static BOOL bytes128_to_ecn2(unsigned char Ppubs[], ecn2 *res);
 static void zzn12_ElementPrint(zzn12 x);
 static void ecn2_Bytes128_Print(ecn2 x);
 static void LinkCharZzn12(unsigned char *message, int len, zzn12 w, unsigned char *Z, int Zlen);
 static int Test_Point(epoint* point);
-void SM4_standard_block_encrypt(unsigned char key[], unsigned char * message, int mlen, unsigned char *cipher, int * cipher_len);
-void SM4_standard_block_decrypt(unsigned char key[], unsigned char *cipher, int len, unsigned char *plain, int *plain_len); 
-int SM9_standard_keyex_kdf(unsigned char *IDA, unsigned char *IDB, epoint *RA, epoint *RB, zzn12 g1, zzn12 g2, zzn12 g3, int klen, unsigned char K[]);
-int SM9_standard_keyex_hash(unsigned char hashid[], unsigned char *IDA, unsigned char *IDB, epoint *RA, epoint *RB, zzn12 g1, zzn12 g2, zzn12 g3, unsigned char hash[]);
-static int SM9_standard_h1(unsigned char Z[], int Zlen, big n, big h1);
-int SM9_standard_enc_mac(unsigned char *K, int Klen, unsigned char *M, int Mlen, unsigned char C[]);
-static int SM9_standard_init();
-static int SM9_standard_generateencryptkey(unsigned char hid[], unsigned char *ID, int IDlen, big ke, unsigned char Ppubs[], unsigned char deB[]);
-int SM9_standard_keyex_inita_i(unsigned char hid[], unsigned char *IDB, unsigned char randA[],
-                               unsigned char Ppub[], unsigned char deA[], epoint *RA);
-int SM9_standard_keyex_reb_i(unsigned char hid[], unsigned char *IDA, unsigned char *IDB, unsigned char randB[], unsigned char Ppub[], unsigned char deB[], epoint *RA, epoint *RB, unsigned char SB[], zzn12 *g1, zzn12 *g2, zzn12 *g3);
-int SM9_standard_keyex_inita_ii(unsigned char *IDA, unsigned char *IDB, unsigned char randA[], unsigned char Ppub[], unsigned char deA[], epoint *RA, epoint *RB, unsigned char SB[], unsigned char SA[]);
-int SM9_standard_keyex_reb_ii(unsigned char *IDA, unsigned char *IDB, zzn12 g1, zzn12 g2, zzn12 g3, epoint *RA, epoint *RB, unsigned char SA[]);
-int SM9_standard_exch_selfcheck();
-int SM9_standard_enc_selfcheck();
-int SM9_standard_encrypt(unsigned char hid[], unsigned char *IDB, unsigned char *message, int mlen, unsigned char rand[],
-                         int EncID, int k1_len, int k2_len, unsigned char Ppub[], unsigned char C[], int *C_len);
-int SM9_standard_decrypt(unsigned char C[], int C_len, unsigned char deB[], unsigned char *IDB, int EncID,
-                         int k1_len, int k2_len, unsigned char M[], int * Mlen);
-int SM9_standard_key_encap(unsigned char hid[], unsigned char *IDB, unsigned char rand[], unsigned char Ppub[], unsigned char C[], unsigned char K[], int Klen);
-int SM9_standard_key_decap(unsigned char *IDB, unsigned char deB[], unsigned char C[], int Klen, unsigned char K[]);
-int SM9_standard_encap_selfcheck();
 static int Test_Range(big x);
 int SM9_standard_h2(unsigned char Z[], int Zlen, big n, big h2);
 int SM9_standard_generatesignkey(unsigned char hid[], unsigned char *ID, int IDlen, big ks, unsigned char Ppubs[], unsigned char dsa[]);
@@ -295,25 +261,24 @@ static int SM9_standard_h1(unsigned char Z[], int Zlen, big n, big h1)
     return 0;
 }
 
-
 static int SM9_standard_init()
 {
     big P1_x, P1_y;
-	
-	// add by y.t.x. [2018-07-13]
-	// 防止init 崩溃 begin 
-	mip = mirsys(1000, 16);
-	mip->IOBASE = 16;
-	// 防止init 崩溃 end
+
+    // add by y.t.x. [2018-07-13]
+    // 防止init 崩溃 begin 
+    mip = mirsys(1000, 16);
+    mip->IOBASE = 16;
+    // 防止init 崩溃 end
 
     para_q = mirvar(0);
     N = mirvar(0);
-    P1_x = mirvar(0); 
+    P1_x = mirvar(0);
     P1_y = mirvar(0);
     para_a = mirvar(0);
     para_b = mirvar(0);
     para_t = mirvar(0);
-    X.a = mirvar(0); 
+    X.a = mirvar(0);
     X.b = mirvar(0);
     P2.x.a = mirvar(0);
     P2.x.b = mirvar(0);
@@ -335,84 +300,16 @@ static int SM9_standard_init()
     mip->TWIST = MR_SEXTIC_M;
     ecurve_init(para_a, para_b, para_q, MR_PROJECTIVE); //Initialises GF(q) elliptic curve
                                                         //MR_PROJECTIVE specifying projective coordinates
-    if(!epoint_set(P1_x, P1_y, 0, P1)) 
+    if (!epoint_set(P1_x, P1_y, 0, P1))
         return SM9_G1BASEPOINT_SET_ERR;
-    
-    if(!(bytes128_to_ecn2(SM9_P2, &P2))) 
+
+    if (!(bytes128_to_ecn2(SM9_P2, &P2)))
         return SM9_G2BASEPOINT_SET_ERR;
     set_frobenius_constant(&X);
-    
+
     return 0;
 }
 
-
-static int SM9_standard_generateencryptkey(unsigned char hid[], unsigned char *ID, int IDlen, big ke, unsigned char Ppubs[], unsigned char deB[])
-{
-    big h1, t1, t2, rem, xPpub, yPpub, tmp;
-    unsigned char *Z = NULL;
-    int Zlen = IDlen + 1, buf;
-    ecn2 dEB;
-    epoint *Ppub;
-
-    h1 = mirvar(0);
-    t1 = mirvar(0);
-    t2 = mirvar(0);
-    rem = mirvar(0);
-    tmp = mirvar(0);
-    xPpub = mirvar(0);
-    yPpub = mirvar(0);
-    Ppub = epoint_init();
-    dEB.x.a = mirvar(0);
-    dEB.x.b = mirvar(0);
-    dEB.y.a = mirvar(0);
-    dEB.y.b = mirvar(0);
-    dEB.z.a = mirvar(0);
-    dEB.z.b = mirvar(0);
-    dEB.marker = MR_EPOINT_INFINITY;
-
-    Z = (char *)malloc(sizeof(char)*(Zlen + 1));
-	memset(Z, 0, sizeof(char)*(Zlen + 1)); //add by y.t.x. [2018-07-13]
-    memcpy(Z, ID, IDlen);
-    memcpy(Z + IDlen, hid, 1);
-
-    buf = SM9_standard_h1(Z, Zlen, N, h1);
-    if(buf != 0) 
-        return buf;
-    add(h1, ke, t1);//t1=H1(IDA||hid,N)+ks
-    xgcd(t1, N, t1, t1, t1);//t1=t1(-1)
-    multiply(ke, t1, t2); 
-    divide(t2, N, rem);//t2=ks*t1(-1)
-
-    //Ppub=[ke]P2
-    ecurve_mult(ke, P1, Ppub);
-
-    //deB=[t2]P2
-    ecn2_copy(&P2, &dEB);
-    ecn2_mul(t2, &dEB);
-
-    printf("\n**************The private key deB = (xdeB, ydeB)：*********************\n");
-    ecn2_Bytes128_Print(dEB);
-    printf("\n**********************PublicKey Ppubs=[ke]P1：*************************\n");
-    epoint_get(Ppub, xPpub, yPpub);
-    cotnum(xPpub, stdout);
-    cotnum(yPpub, stdout);
-
-    epoint_get(Ppub, xPpub, yPpub);
-    big_to_bytes(BNLEN, xPpub, Ppubs, 1);
-    big_to_bytes(BNLEN, yPpub, Ppubs + BNLEN, 1);
-    
-    redc(dEB.x.b, tmp);
-    big_to_bytes(BNLEN, tmp, deB, 1);
-    redc(dEB.x.a, tmp);
-    big_to_bytes(BNLEN, tmp, deB + BNLEN, 1);
-    redc(dEB.y.b, tmp);
-    big_to_bytes(BNLEN, tmp, deB + BNLEN * 2, 1);
-    redc(dEB.y.a, tmp);
-    big_to_bytes(BNLEN, tmp, deB + BNLEN * 3, 1);
-
-    free(Z);
-    return 0;
-}
 
 static int Test_Range(big x)
 {
@@ -431,8 +328,4 @@ static int Test_Range(big x)
 }
 
 
-#ifdef __cplusplus
-}
-#endif
 
-#endif
