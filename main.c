@@ -56,6 +56,14 @@ int main()
     if (memcmp(dSA, std_dSA, 64) != 0)
         return SM9_GEPRI_ERR;
 
+    printf("\n********************** SM9 signature algorithm***************************\n");
+    tmp = SM9_standard_sign(hid, IDA, message, mlen, rand, dSA, Ppub, h, S);
+    if (tmp != 0)
+        return tmp;
+    if (memcmp(h, std_h, 32) != 0)
+        return SM9_SIGN_ERR;
+    if (memcmp(S, std_S, 64) != 0)
+        return SM9_SIGN_ERR;
   
     return 0;
 }

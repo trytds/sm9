@@ -118,3 +118,96 @@ int SM9_standard_generatesignkey(unsigned char hid[], unsigned char *ID, int IDl
 }
 
 
+int SM9_standard_sign(unsigned char hid[], unsigned char* IDA, unsigned char* message,
+    int len, unsigned char rand[], unsigned char dsa[],
+    unsigned char Ppub[], unsigned char H[], unsigned char S[])
+{
+    big r, h, l, xdSA, ydSA;
+    big xS, yS, tmp, zero;
+    zzn12 g, w;
+    epoint* s, *dSA;
+    ecn2 Ppubs;
+    int Zlen, buf;
+    unsigned char* Z = NULL;
+    
+    //initiate
+    r = mirvar(0);
+    h = mirvar(0);
+    l = mirvar(0);
+    tmp = mirvar(0);
+    zero = mirvar(0);
+    xS = mirvar(0);
+    yS = mirvar(0);
+    xdSA = mirvar(0);
+    ydSA = mirvar(0);
+    s = epoint_init();
+    dSA = epoint_init();
+    Ppubs.x.a = mirvar(0);
+    Ppubs.x.b = mirvar(0);
+    Ppubs.y.a = mirvar(0);
+    Ppubs.y.b = mirvar(0);
+    Ppubs.z.a = mirvar(0);
+    Ppubs.z.b = mirvar(0);
+    Ppubs.marker = MR_EPOINT_INFINITY;
+    zzn12_init(&g);
+    zzn12_init(&w);
+
+    bytes_to_big(BNLEN, rand, r);
+    bytes_to_big(BNLEN, dsa, xdSA);
+    bytes_to_big(BNLEN, dsa + BNLEN, ydSA);
+    epoint_set(xdSA, ydSA, 0, dSA);
+    bytes128_to_ecn2(Ppub,&Ppubs);
+
+    //A1 g=e(P1,Ppubs-s)
+    if (!ecap(Ppubs, P1, para_t, X, &g))
+        return SM9_MY_ECAP_12A_ERR;
+    if (!member(g, para_t, X))
+        return SM9_MEMBER_ERR;
+
+    printf("\n***********************g=e(P1,Ppubs):****************************\n");
+    zzn12_ElementPrint(g);
+
+    //A2: w=g(r)
+    printf("\n***********************randnum r:********************************\n");
+    cotnum(r, stdout);
+    w = zzn12_pow(g, r);
+    printf("\n***************************w=gr:**********************************\n");
+    zzn12_ElementPrint(w);
+
+    //Step3:calculate h=H2(M||w,N)
+    Zlen = len + 32 * 12; //这里是什么
+    Z = (char*)malloc(sizeof(char) * (Zlen + 1));
+    if(Z==NULL)
+        return SM9_ASK_MEMORY_ERR;
+
+    LinkCharZzn12(message, len, w, Z, Zlen);
+    buf = SM9_standard_h2(Z, Zlen, N, h);
+    if (buf != 0)
+        return buf;
+    printf("\n****************************h:*************************************\n");
+    cotnum(h, stdout);
+
+    //Step4:l=(r-h)mod N
+    subtract(r, h, l);
+    divide(l, N, tmp);
+    while (mr_compare(l, zero) < 0)
+        add(l, N, l);
+    if (mr_compare(l, zero) == 0)
+        return SM9_L_error;
+    printf("\n**************************l=(r-h)mod N:****************************\n");
+    cotnum(l, stdout);
+
+    //Step5:S=[l]dSA=(xS,yS)
+    ecurve_mult(l, dSA, s);
+    epoint_get(s, xS, yS);
+    printf("\n**************************S=[l]dSA=(xS,yS):*************************\n");
+    cotnum(xS, stdout);
+    cotnum(yS, stdout);
+
+    big_to_bytes(32, h, H, 1);
+    big_to_bytes(32, xS, S, 1);
+    big_to_bytes(32, yS, S + 32, 1);
+
+    free(Z);
+    return 0;
+}

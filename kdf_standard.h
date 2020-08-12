@@ -1,12 +1,8 @@
-#ifndef HEADER_KDF_STANDARD_H
 #define HEADER_KDF_STANDARD_H
 
 #include <string.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 #define SM3_len 256
@@ -390,7 +386,4 @@ static void SM3_kdf(unsigned char Z[], unsigned short zlen, unsigned short klen,
 }
 
 
-#ifdef __cplusplus
-}
-# endif
-#endif
+

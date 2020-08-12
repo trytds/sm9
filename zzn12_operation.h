@@ -1,13 +1,5 @@
-#ifndef HEADER_ZZN12_OPERATION_H
 #define HEADER_ZZN12_OPERATION_H
-
-
 #include "miracl.h"
-
-
-#ifdef __cplusplus
-extern "C"{
-#endif
 
 miracl* mip;
 zzn2 X; //Frobniues constant
@@ -406,8 +398,3 @@ static zzn12 zzn12_pow(zzn12 x, big k)
     return res;
 }
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif

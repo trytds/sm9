@@ -1,13 +1,9 @@
-#ifndef HEADER_R_ATE_H
 #define HEADER_R_ATE_H
 
 
 #include "zzn12_operation.h"
 
 
-#ifdef __cplusplus
-extern "C"{
-#endif
 
 
 static zzn2 zzn2_pow(zzn2 x, big k)
@@ -460,8 +456,4 @@ static BOOL member(zzn12 r, big x, zzn2 F)
     return FALSE;
 }
 
-#ifdef __cplusplus
-}
-#endif
 
-#endif
