@@ -72,7 +72,7 @@ int SM9_standard_h2(unsigned char Z[], int Zlen, big n, big h2);
 int SM9_standard_generatesignkey(unsigned char hid[], unsigned char *ID, int IDlen, big ks, unsigned char Ppubs[], unsigned char dsa[]);
 int SM9_standard_sign(unsigned char hid[], unsigned char *IDA, unsigned char *message, int len, unsigned char rand[], unsigned char dsa[], unsigned char Ppub[], unsigned char H[], unsigned char S[]);
 int SM9_standard_verify(unsigned char H[], unsigned char S[], unsigned char hid[], unsigned char *IDA, unsigned char *message, int len, unsigned char Ppub[]);
-int SM9_standard_sv_selfcheck();
+
 
 
 

@@ -64,6 +64,10 @@ int main()
         return SM9_SIGN_ERR;
     if (memcmp(S, std_S, 64) != 0)
         return SM9_SIGN_ERR;
-  
+    
+    printf("\n******************* SM9 verification algorithm *************************\n");
+    tmp = SM9_standard_verify(h, S, hid, IDA, message, mlen, Ppub);
+    if (tmp != 0)
+       return tmp;
     return 0;
 }

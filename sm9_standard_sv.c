@@ -180,7 +180,7 @@ int SM9_standard_sign(unsigned char hid[], unsigned char* IDA, unsigned char* me
     if(Z==NULL)
         return SM9_ASK_MEMORY_ERR;
 
-    LinkCharZzn12(message, len, w, Z, Zlen);
+    LinkCharZzn12(message, len, w, Z, Zlen); //这里是什么
     buf = SM9_standard_h2(Z, Zlen, N, h);
     if (buf != 0)
         return buf;
@@ -209,5 +209,126 @@ int SM9_standard_sign(unsigned char hid[], unsigned char* IDA, unsigned char* me
     big_to_bytes(32, yS, S + 32, 1);
 
     free(Z);
+    return 0;
+}
+
+int SM9_standard_verify(unsigned char H[],unsigned char S[],unsigned char hid[],
+    unsigned char *IDA,unsigned char *message,int len,unsigned char Ppub[])
+{
+    big h, xS, yS, h1, h2;
+    epoint* S1;
+    zzn12 g, t, u, w;
+    ecn2 P, Ppubs; //x,y,z三个坐标初始化
+    int Zlen1,Zlen2, buf;
+    unsigned char* Z1 = NULL, * Z2 = NULL;
+
+    h = mirvar(0);
+    h1 = mirvar(0);
+    h2 = mirvar(0);
+    xS = mirvar(0);
+    yS = mirvar(0);
+    S1 = epoint_init();
+    
+    zzn12_init(&g);
+    zzn12_init(&t);
+    zzn12_init(&u);
+    zzn12_init(&w);
+
+    P.x.a = mirvar(0);
+    P.x.b = mirvar(0);
+    P.y.a = mirvar(0);
+    P.y.b = mirvar(0);
+    P.z.a = mirvar(0);
+    P.z.b = mirvar(0);
+    P.marker = MR_EPOINT_INFINITY;
+
+    Ppubs.x.a = mirvar(0);
+    Ppubs.x.b = mirvar(0);
+    Ppubs.y.a = mirvar(0);
+    Ppubs.y.b = mirvar(0);
+    Ppubs.z.a = mirvar(0);
+    Ppubs.z.b = mirvar(0);
+    Ppubs.marker = MR_EPOINT_INFINITY;
+
+    bytes_to_big(BNLEN, H, h);
+    bytes_to_big(BNLEN, S, xS);
+    bytes_to_big(BNLEN, S + BNLEN, yS);
+    bytes128_to_ecn2(Ppub, &Ppubs);
+
+    //step1: test if h in the range [1,N-1]
+    if (Test_Range(h)) //这里Test_Range单独抽取出来独立函数
+        return SM9_H_OUTRANGE;
+
+    //step2: test if S is on G1
+    epoint_set(xS, yS, 0, S1);
+    if (Test_Point(S1))  //这里也单独抽离出独立函数
+        return SM9_S_NOT_VALID_G1;
+
+    //step3: g=e(P1,Ppub-s) g是zzn12类 Ppubs是ecn2类
+    if (!ecap(Ppubs, P1, para_t, X, &g)) //这几个参数都在单独的类里
+        return SM9_MY_ECAP_12A_ERR;
+    //test id a ZZn12 element is of order q
+    if (!member(g, para_t, X))
+        return SM9_MEMBER_ERR;
+
+    printf("\n***********************g=e(P1,Ppubs):****************************\n");
+    zzn12_ElementPrint(g);
+
+    //step4: calculate t=g(h)
+    t = zzn12_pow(g, h); //这里单独抽离出来 幂方函数
+    printf("\n***************************w=gh:**********************************\n");
+    zzn12_ElementPrint(t);
+
+    //step5: calculate h1=H1(IDA||hid,N)
+    Zlen1 = strlen(IDA) + 1;
+    Z1 = (char*)malloc(sizeof(char) * (Zlen1 + 1));
+    if (Z1 == NULL)
+        return SM9_ASK_MEMORY_ERR;
+
+    memcpy(Z1, IDA, strlen(IDA)); //Z1是目标 
+    memcpy(Z1 + strlen(IDA), hid, 1);
+    buf = SM9_standard_h1(Z1, Zlen1, N, h1);
+    if (buf != 0)
+        return buf;
+    printf("\n****************************h1:**********************************\n");
+    cotnum(h1, stdout);
+
+    //step6:P=[h1]P2+Ppubs
+    ecn2_copy(&P2, &P);
+    ecn2_mul(h1, &P);
+    ecn2_add(&Ppubs, &P);
+
+    //step7: u=e(S1,P)
+    if (!ecap(P, S1, para_t, X, &u))
+        return SM9_MY_ECAP_12A_ERR;
+    //test if ZZn12 element is of order q
+    if (!member(u, para_t, X))
+        return SM9_MEMBER_ERR;
+    printf("\n************************** u=e(S1,P):*****************************\n");
+    zzn12_ElementPrint(u);
+
+    //step8: w=u*t
+    zzn12_mul(u, t, &w);
+    printf("\n************************* w=u*t: **********************************\n");
+    zzn12_ElementPrint(w);
+
+    //Step9:h2=H2(M||w,N)
+    Zlen2 = len + 32 * 12; //这里32*12是什么意思
+    Z2 = (char*)malloc(sizeof(char) * (Zlen2 + 1));
+    if(Z2==NULL)
+        return SM9_ASK_MEMORY_ERR;
+
+    LinkCharZzn12(message, len, w, Z2, Zlen2);
+    buf = SM9_standard_h2(Z2, Zlen2, N, h2);
+    if (buf != 0)
+        return buf;
+    printf("\n**************************** h2:***********************************\n");
+    cotnum(h2, stdout);
+
+    free(Z1);
+    free(Z2);
+    if (mr_compare(h2, h) != 0)
+        return SM9_DATA_MEMCMP_ERR;
+    printf("\n***************Success***************");
     return 0;
 }
