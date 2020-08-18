@@ -50,12 +50,13 @@ int SM9_standard_h2(unsigned char Z[], int Zlen, big n, big h2)
 
 
 
-int SM9_standard_generatesignkey(unsigned char hid[], unsigned char *ID, int IDlen, big ks, unsigned char Ppubs[], unsigned char dsa[])
+int SM9_standard_generatesignkey(unsigned char hid[], unsigned char *ID, int IDlen, 
+    big ks, unsigned char Ppubs[], unsigned char dsa[])
 {
     big h1, t1, t2, rem, xdSA, ydSA, tmp;
     unsigned char* Z = NULL;
     int Zlen = IDlen + 1, buf;
-    ecn2 Ppub;
+    ecn2 Ppub; //签名主公钥 传递给sign函数中Ppubs
     epoint* dSA;
 
     h1 = mirvar(0);
@@ -104,7 +105,7 @@ int SM9_standard_generatesignkey(unsigned char hid[], unsigned char *ID, int IDl
     big_to_bytes(BNLEN, xdSA, dsa, 1);
     big_to_bytes(BNLEN, ydSA, dsa + BNLEN, 1);
 
-    redc(Ppub.x.b, tmp);
+    redc(Ppub.x.b, tmp); //标准形式
     big_to_bytes(BNLEN, tmp, Ppubs, 1);
     redc(Ppub.x.a, tmp);
     big_to_bytes(BNLEN, tmp, Ppubs + BNLEN, 1);
@@ -126,7 +127,7 @@ int SM9_standard_sign(unsigned char hid[], unsigned char* IDA, unsigned char* me
     big xS, yS, tmp, zero;
     zzn12 g, w;
     epoint* s, *dSA;
-    ecn2 Ppubs;
+    ecn2 Ppubs; //签名主公钥
     int Zlen, buf;
     unsigned char* Z = NULL;
     

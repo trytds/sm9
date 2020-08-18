@@ -2,9 +2,14 @@
 #include "miracl.h"
 #include "mirdef.h"
 #include "sm9_standard.h"
+#include <time.h>
 
 int main()
 {
+    clock_t start, finish;
+    double duration;
+
+
     //the master private key
     unsigned char dA[32] = { 0x00, 0x01, 0x30, 0xE7, 0x84, 0x59, 0xD7, 0x85, 0x45, 0xCB, 0x54, 0xC5, 0x87, 0xE0, 0x2C, 0xF4,
                             0x80, 0xCE, 0x0B, 0x66, 0x34, 0x0F, 0x31, 0x9F, 0x34, 0x8A, 0x1D, 0x5B, 0x1F, 0x2D, 0xC5, 0xF4 };
@@ -48,6 +53,7 @@ int main()
     bytes_to_big(32, dA, ks);
 
     printf("\n*********************** SM9 key Generation ***************************\n");
+    start = clock();
     tmp = SM9_standard_generatesignkey(hid, IDA, strlen(IDA), ks, Ppub, dSA);
     if (tmp != 0)
         return tmp;
@@ -55,8 +61,12 @@ int main()
         return SM9_GEPUB_ERR;
     if (memcmp(dSA, std_dSA, 64) != 0)
         return SM9_GEPRI_ERR;
+    finish = clock();
+    duration = (double)(finish - start) / CLOCKS_PER_SEC;
+    printf("KeyGen: %f seconds\n", duration);
 
     printf("\n********************** SM9 signature algorithm***************************\n");
+    start = clock();
     tmp = SM9_standard_sign(hid, IDA, message, mlen, rand, dSA, Ppub, h, S);
     if (tmp != 0)
         return tmp;
@@ -64,10 +74,18 @@ int main()
         return SM9_SIGN_ERR;
     if (memcmp(S, std_S, 64) != 0)
         return SM9_SIGN_ERR;
-    
+    finish = clock();
+    duration = (double)(finish - start) / CLOCKS_PER_SEC;
+    printf("SignSM9: %f seconds\n", duration);
+
     printf("\n******************* SM9 verification algorithm *************************\n");
+    start = clock();
     tmp = SM9_standard_verify(h, S, hid, IDA, message, mlen, Ppub);
     if (tmp != 0)
        return tmp;
+    finish = clock();
+    duration = (double)(finish - start) / CLOCKS_PER_SEC;
+    printf("\nVertifySM9: %f seconds\n", duration);
+
     return 0;
 }
