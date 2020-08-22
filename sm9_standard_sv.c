@@ -175,20 +175,20 @@ int SM9_standard_sign(unsigned char hid[], unsigned char* IDA, unsigned char* me
     printf("\n***************************w=gr:**********************************\n");
     zzn12_ElementPrint(w);
 
-    //Step3:calculate h=H2(M||w,N)
-    Zlen = len + 32 * 12; //这里是什么
+    //A3:calculate h=H2(M||w,N)
+    Zlen = len + 32 * 12; 
     Z = (char*)malloc(sizeof(char) * (Zlen + 1));
     if(Z==NULL)
         return SM9_ASK_MEMORY_ERR;
 
-    LinkCharZzn12(message, len, w, Z, Zlen); //这里是什么
+    LinkCharZzn12(message, len, w, Z, Zlen); 
     buf = SM9_standard_h2(Z, Zlen, N, h);
     if (buf != 0)
         return buf;
     printf("\n****************************h:*************************************\n");
     cotnum(h, stdout);
 
-    //Step4:l=(r-h)mod N
+    //A4:l=(r-h)mod N
     subtract(r, h, l);
     divide(l, N, tmp);
     while (mr_compare(l, zero) < 0)
@@ -198,7 +198,7 @@ int SM9_standard_sign(unsigned char hid[], unsigned char* IDA, unsigned char* me
     printf("\n**************************l=(r-h)mod N:****************************\n");
     cotnum(l, stdout);
 
-    //Step5:S=[l]dSA=(xS,yS)
+    //A5:S=[l]dSA=(xS,yS)
     ecurve_mult(l, dSA, s);
     epoint_get(s, xS, yS);
     printf("\n**************************S=[l]dSA=(xS,yS):*************************\n");

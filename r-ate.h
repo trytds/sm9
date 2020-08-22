@@ -8,7 +8,7 @@ miracl库中以ecn2开开头的函数提供SM9中G1的2次扩域G2群的数学功能
 
 #include "zzn12_operation.h"
 
-/*zzn2.cpp改写*/
+
 static zzn2 zzn2_pow(zzn2 x, big k)
 {
     int i, j, nb, n, nbw, nzs;
